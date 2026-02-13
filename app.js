@@ -1,7 +1,7 @@
 // ============================================
 // CONFIGURACIÓN - ACTUALIZA ESTA URL DESPUÉS DE PUBLICAR EL APPS SCRIPT
 // ============================================
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxmx6BV4cu86qpM38okTgbBZSCk7eSxLYVzPsJhSvxifLXiwxeKvU_8q0vnO-L9pdFqkQ/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxJ8a_PkB_I0DFbB9sj9epqMqrBSakXqfte-st2ZxpIwKx7LyyE0nSQSWkL-vlOaGd4gQ/exec';
 
 // Umbral para aplicar retenciones
 const UMBRAL_RETENCION = 524000;
@@ -399,7 +399,7 @@ async function enviarFormulario(e) {
         
         // Con no-cors no podemos leer la respuesta, asumimos éxito
         // Mostrar modal de éxito
-        const pdfUrl = `https://script.google.com/macros/s/AKfycbxim2_7a4yMn23PSQ53RIhYcOJgaHk2pPjd10ohcauAjoiZtfJ_OPWhBMiWO6sI787nDw/exec`;
+        const pdfUrl = `https://docs.google.com/spreadsheets/d/1wZNH3j7ebm6v7hAcTTJVgXPP4Ffrrfi57KxnWAjWJOs/export?format=pdf&gid=1393302560&portrait=true&size=letter&fitw=true`;
         btnDescargarRecibo.href = pdfUrl;
         
         modalExito.classList.remove('hidden');
