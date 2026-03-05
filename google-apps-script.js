@@ -238,23 +238,25 @@ function actualizarRecibo(datos) {
       return { success: false, error: 'No se encontró la hoja de Recibo' };
     }
     
-    // Limpiar datos anteriores (filas 5, 7, 9 - donde se escriben los datos)
+    // Limpiar solo los valores, NO los títulos de la fila 8
     hojaRecibo.getRange('A5:J5').clearContent();  // Limpia fila 5
     hojaRecibo.getRange('A7:J7').clearContent();  // Limpia fila 7
-    hojaRecibo.getRange('H9:J9').clearContent();  // Limpia celda de responsable
-    
+    hojaRecibo.getRange('B8').clearContent();     // Limpia solo el valor de PLAZO
+    hojaRecibo.getRange('D8').clearContent();     // Limpia solo el valor de TOTAL
+    hojaRecibo.getRange('I8').clearContent();     // Limpia solo el valor de REALIZADO
+
     // Fila 4: Escribir los títulos (para asegurar que siempre estén)
     hojaRecibo.getRange('A4').setValue('NIT');                    // NIT (A4:B4)
     hojaRecibo.getRange('C4').setValue('NOMBRE PROVEEDOR');       // NOMBRE PROVEEDOR (C4:D4)
     hojaRecibo.getRange('E4').setValue('FECHA FACTURA');          // FECHA FACTURA (E4:G4)
     hojaRecibo.getRange('H4').setValue('NUM FACTURA');            // NUM FACTURA (H4:J4)
-    
+
     // Fila 5: Datos de identificación de la factura
     hojaRecibo.getRange('A5').setValue(datos.nit);              // NIT (A5:B5)
-    hojaRecibo.getRange('C5').setValue(datos.nombre);           // NOMBRE (C5:D5)i
+    hojaRecibo.getRange('C5').setValue(datos.nombre);           // NOMBRE (C5:D5)
     hojaRecibo.getRange('E5').setValue(datos.fechaFact);        // FECHA FACT (E5:G5)
     hojaRecibo.getRange('H5').setValue(datos.numFactura);       // NUM FACTURA (H5:J5)
-    
+
     // Fila 7: Valores de la factura
     hojaRecibo.getRange('A7').setValue(datos.valorNeto);              // VALOR NETO
     hojaRecibo.getRange('B7').setValue(datos.valorIva);               // VALOR DE IVA
@@ -265,10 +267,15 @@ function actualizarRecibo(datos) {
     hojaRecibo.getRange('G7').setValue(datos.valorNc);                // VALOR N.C
     hojaRecibo.getRange('H7').setValue(datos.valorPp);                // VALOR P.P
     hojaRecibo.getRange('I7').setValue(datos.subtotal);               // SUBTOTAL (I7:J7)
-    
-    // Fila 9: Responsable (H9:J9 - junto a "REALIZADO:")
-    hojaRecibo.getRange('H9').setValue(datos.elaboradoPor || '');
-    
+
+    // Fila 8: Títulos y valores (asegurar que los títulos siempre estén)
+    hojaRecibo.getRange('A8').setValue('PLAZO:');                     // Título PLAZO
+    hojaRecibo.getRange('C8').setValue('TOTAL:');                     // Título TOTAL
+    hojaRecibo.getRange('H8').setValue('REALIZADO:');                 // Título REALIZADO
+    hojaRecibo.getRange('B8').setValue(datos.plazo || '');            // Valor PLAZO
+    hojaRecibo.getRange('E8').setValue(datos.subtotal);               // Valor TOTAL (E8)
+    hojaRecibo.getRange('I8').setValue(datos.elaboradoPor || '');     // Valor REALIZADO
+
     return { success: true };
     
   } catch (error) {
@@ -281,6 +288,8 @@ function actualizarRecibo(datos) {
  * Puedes llamarla manualmente desde el editor de Apps Script
  */
 function generarPDFRecibo() {
+    // Asegura que todos los cambios en la hoja estén guardados antes de exportar
+    SpreadsheetApp.flush();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const hojaRecibo = ss.getSheetByName(CONFIG.HOJA_RECIBO);
   
@@ -291,10 +300,10 @@ function generarPDFRecibo() {
   
   const ssId = ss.getId();
   const gid = hojaRecibo.getSheetId();
-  
-  // Construir URL del PDF
-  const url = `https://docs.google.com/spreadsheets/d/${ssId}/export?format=pdf&gid=${gid}&portrait=true&size=letter&fitw=true`;
-  
+
+  // Construir URL del PDF exportando solo el rango A1:J10 en horizontal (landscape), con scale=4 para ajustar a ancho
+  const url = `https://docs.google.com/spreadsheets/d/${ssId}/export?format=pdf&gid=${gid}&landscape=true&size=letter&range=A1:L10&scale=4&top_margin=0.00&bottom_margin=0.00&left_margin=0.00&right_margin=0.00`;
+
   Logger.log('URL del PDF: ' + url);
   return url;
 }
