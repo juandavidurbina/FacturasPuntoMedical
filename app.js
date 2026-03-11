@@ -3,8 +3,9 @@
 // ============================================
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwLuKvNQISPeb23d8_r6k_FxE6tHHpkpYkbS4sLudM0Hh05sH43dFsjyfIfTpPZK0uXZg/exec';
 
-// Umbral para aplicar retenciones
-const UMBRAL_RETENCION = 524000;
+// Umbrales para aplicar retenciones (valor UVT = 52374)
+const UMBRAL_FTE = 52374 * 10;  // 10 UVT
+const UMBRAL_ICA = 52374 * 27;  // 27 UVT
 
 // ============================================
 // ELEMENTOS DEL DOM
@@ -149,21 +150,21 @@ function calcularRetenciones() {
     let rfte = 0;
     let rica = 0;
     
-    // Verificar si aplica retención
-    // Solo aplica si el tipo de retención es "Supera Base" o "Permanente" Y valor neto > 524000
-    const aplicaRetencion = (datosDescuento.retencionFte === 'Supera Base' || 
-                            datosDescuento.retencionFte === 'Permanente') && 
-                            valorNeto > UMBRAL_RETENCION;
-    
     // Para Autoretenedor no se aplica retención en la fuente
     const esAutoretenedor = datosDescuento.retencionFte === 'Autoretenedor';
+    const esSuperaBaseOPermanente = datosDescuento.retencionFte === 'Supera Base' || 
+                                   datosDescuento.retencionFte === 'Permanente';
     
-    if (aplicaRetencion && !esAutoretenedor) {
-        // R/FTE = (VALOR NETO - VALOR N.C) * Tarifa Retención / 100
-        rfte = (valorNeto - valorNc) * tarifaRetencion / 100;
+    if (esSuperaBaseOPermanente && !esAutoretenedor) {
+        // R/FTE aplica si valor neto > 10 UVT
+        if (valorNeto > UMBRAL_FTE) {
+            rfte = (valorNeto - valorNc) * tarifaRetencion / 100;
+        }
         
-        // R/ICA = (VALOR NETO - VALOR N.C) * Tarifa ICA / 1000
-        rica = (valorNeto - valorNc) * tarifaIca / 1000;
+        // R/ICA aplica si valor neto > 27 UVT
+        if (valorNeto > UMBRAL_ICA) {
+            rica = (valorNeto - valorNc) * tarifaIca / 1000;
+        }
     }
     
     setFormattedValue(rfteInput, Math.round(rfte));
