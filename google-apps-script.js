@@ -182,24 +182,32 @@ function registrarFactura(datos) {
       return { success: false, error: 'No se encontró la hoja de LISTA DE FACTURAS' };
     }
     
-    // Preparar la fila de datos según el orden de columnas de tu hoja (A-M, 13 columnas)
-    // A:NIT, B:NOMBRE, C:FECHA FACT, D:NUM FACTURA, E:VALOR NETO, F:VALOR DE IVA, 
-    // G:Aplica R/FTE, H:TARIFA, I:R/FTE, J:R/ICA, K:VALOR N.C, L:VALOR P.P, M:SUBTOTAL
+    // DEBUG: Verificar que granTotal está llegando
+    Logger.log('DEBUG - GRAN TOTAL recibido: ' + datos.granTotal + ' (tipo: ' + typeof datos.granTotal + ')');
+    
+    // Preparar la fila de datos según el nuevo orden solicitado -> 15 columnas (columna O = GRAN TOTAL)
+    // A:NIT, B:NOMBRE, C:FECHA FACT, D:NUM FACTURA, E:VALOR NETO, F:VALOR N.C,
+    // G:SUBTOTAL, H:VALOR IVA, I:Aplica R/FTE, J:TARIFA, K:R/FTE, L:R/ICA, M:VALOR P.P, N: (reserved), O:GRAN TOTAL
     const nuevaFila = [
       datos.nit,
       datos.nombre,
       datos.fechaFact,
       datos.numFactura,
       datos.valorNeto,
+      datos.valorNc,
+      datos.subtotal,
       datos.valorIva,
       datos.aplicaRfteTexto || '',    // Porcentaje R/FTE como texto ("2,50%")
       datos.tarifa || 0,              // Tarifa ICA (ej: 4.14)
       datos.rfte,
       datos.rica,
-      datos.valorNc,
       datos.valorPp,
-      datos.subtotal
+      '',                              // Columna N reservada (dejamos vacía para mantener compatibilidad)
+      datos.granTotal
     ];
+    
+    // DEBUG: Mostrar la fila completa
+    Logger.log('DEBUG - Nueva fila a insertar (15 elementos): ' + JSON.stringify(nuevaFila));
     
     // Agregar la fila al final
     hojaFacturas.appendRow(nuevaFila);
@@ -266,14 +274,14 @@ function actualizarRecibo(datos) {
     hojaRecibo.getRange('F7').setValue(datos.rica);                   // R/ICA
     hojaRecibo.getRange('G7').setValue(datos.valorNc);                // VALOR N.C
     hojaRecibo.getRange('H7').setValue(datos.valorPp);                // VALOR P.P
-    hojaRecibo.getRange('I7').setValue(datos.subtotal);               // SUBTOTAL (I7:J7)
+    hojaRecibo.getRange('I7').setValue(datos.subtotal);               // SUBTOTAL (valorNeto - valor N.C)
 
     // Fila 8: Títulos y valores (asegurar que los títulos siempre estén)
     hojaRecibo.getRange('A8').setValue('PLAZO:');                     // Título PLAZO
     hojaRecibo.getRange('C8').setValue('TOTAL:');                     // Título TOTAL
     hojaRecibo.getRange('H8').setValue('REALIZADO:');                 // Título REALIZADO
     hojaRecibo.getRange('B8').setValue(datos.plazo || '');            // Valor PLAZO
-    hojaRecibo.getRange('E8').setValue(datos.subtotal);               // Valor TOTAL (E8)
+    hojaRecibo.getRange('E8').setValue(datos.granTotal);               // Valor TOTAL (E8) ahora GRAN TOTAL
     hojaRecibo.getRange('I8').setValue(datos.elaboradoPor || '');     // Valor REALIZADO
 
     return { success: true };

@@ -1,7 +1,7 @@
 // ============================================
 // CONFIGURACIÓN - ACTUALIZA ESTA URL DESPUÉS DE PUBLICAR EL APPS SCRIPT
 // ============================================
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwLuKvNQISPeb23d8_r6k_FxE6tHHpkpYkbS4sLudM0Hh05sH43dFsjyfIfTpPZK0uXZg/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKCWmQf8NRzQ2oqsGVov7N0J_i37K72jWJz8Pc4Ex4fb6zY6fJWtX1B5SrsEBVckaKKg/exec';
 
 // Umbrales para aplicar retenciones (valor UVT = 52374)
 const UMBRAL_FTE = 52374 * 10;  // 10 UVT
@@ -178,16 +178,18 @@ function calcularSubtotal() {
     const valorIva = getNumericValue(valorIvaInput);
     const valorNc = getNumericValue(valorNcInput);
     const valorPp = getNumericValue(valorPpInput);
-    
     const { rfte, rica } = calcularRetenciones();
-    
-    // SUBTOTAL = VALOR NETO + VALOR DE IVA - R/FTE - R/ICA - VALOR N.C - VALOR P.P
-    const subtotal = valorNeto + valorIva - rfte - rica - valorNc - valorPp;
-    
-    // Mostrar en formato COP con separadores de miles
-    subtotalDisplay.textContent = '$ ' + formatCurrency(Math.round(subtotal));
-    
-    return subtotal;
+
+    // Nuevo comportamiento:
+    // SUBTOTAL = VALOR NETO - VALOR N.C
+    // GRAN TOTAL = SUBTOTAL + VALOR IVA - R/FTE - R/ICA - VALOR P.P
+    const subtotal = Math.round(valorNeto - valorNc);
+    const granTotal = Math.round(subtotal + valorIva - rfte - rica - valorPp);
+
+    // Mostrar GRAN TOTAL en la UI (incluye retenciones, NC, PP, etc)
+    subtotalDisplay.textContent = '$ ' + formatCurrency(granTotal);
+
+    return { subtotal, granTotal };
 }
 
 // ============================================
@@ -370,6 +372,9 @@ async function enviarFormulario(e) {
         tarifaIcaNum = parseFloat(tarifaIcaNum) || 0;
     }
     
+    // Recalcular para obtener SUBTOTAL y GRAN TOTAL actualizados
+    const { subtotal, granTotal } = calcularSubtotal();
+
     const datos = {
         action: 'registrarFactura',
         nit: nitInput.value,
@@ -385,7 +390,8 @@ async function enviarFormulario(e) {
         rica: getNumericValue(ricaInput),
         valorNc: getNumericValue(valorNcInput),
         valorPp: getNumericValue(valorPpInput),
-        subtotal: parseCurrency(subtotalDisplay.textContent.replace('$', '')),
+        subtotal: subtotal,
+        granTotal: granTotal,
         elaboradoPor: elaboradoPorInput.value,  // Responsable del registro
         plazo: datosDescuento.plazo || 30       // Plazo de pago para el recibo
     };
